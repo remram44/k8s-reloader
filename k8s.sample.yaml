@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: reloader
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: reloader
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: reloader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: reloader
+subjects:
+  - kind: ServiceAccount
+    name: reloader
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reloader
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 6
+  successfulJobsHistoryLimit: 3
+  schedule: "31 21 * * *"
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 120
+      backoffLimit: 1
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: reloader
+          securityContext:
+            runAsNonRoot: true
+          containers:
+          - name: reloader
+            image: ghcr.io/nyu-rts/k8s-reloader:v1.0
+            imagePullPolicy: IfNotPresent
+            env:
+              # If either of these secrets change...
+              - name: INPUTS
+                value: "default secret tls-main default secret tls-subdomain"
+              # ... restart this deployment
+              - name: TARGETS
+                value: "default deployment webserver"
