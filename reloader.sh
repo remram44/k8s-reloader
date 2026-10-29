@@ -24,7 +24,7 @@ while [ $# -ge 3 ]; do
     shift 3
 
     if [ "$TYPE" = "configmap" ] || [ "$TYPE" = "secret" ]; then
-        OUTPUT="$(kubectl -n "$NS" get secret "$NAME" -o json)"
+        OUTPUT="$(kubectl -n "$NS" get $TYPE "$NAME" -o json)"
         if [ $? != 0 ]; then
             exit 1
         fi
