@@ -1,6 +1,6 @@
 #!/bin/sh
 
-USAGE="$(printf 'Usage:\n  INPUTS="<namespace> <configmap|secret> <name> [<namespace> <...> [...]]"\n  TARGETS="<namespace> <deployment|replicaset|statefulset> <name> [<namespace> <...> [...]]"\n')"
+USAGE="$(printf 'Usage:\n  INPUTS="<configmap|secret> <namespace> <name> [<configmap|...> <namespace> <...> [...]]"\n  TARGETS="<deployment|replicaset|statefulset> <namespace> <name> [<deployment|...> <...> [...]]"\n')"
 
 compute_hash(){
     sha256sum - | sed 's/\s.*//'
@@ -18,8 +18,8 @@ if [ $# = 0 ]; then
 fi
 INPUT_HASHES=
 while [ $# -ge 3 ]; do
-    NS="$1"
-    TYPE="$2"
+    TYPE="$1"
+    NS="$2"
     NAME="$3"
     shift 3
 
@@ -46,8 +46,8 @@ if [ $# = 0 ]; then
     exit 1
 fi
 while [ $# -ge 3 ]; do
-    NS="$1"
-    TYPE="$2"
+    TYPE="$1"
+    NS="$2"
     NAME="$3"
     shift 3
 
