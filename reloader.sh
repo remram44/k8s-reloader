@@ -1,6 +1,6 @@
 #!/bin/sh
 
-USAGE="$(printf 'Usage:\n  INPUTS="<configmap|secret> <namespace> <name> [<configmap|...> <namespace> <...> [...]]"\n  TARGETS="<deployment|replicaset|statefulset> <namespace> <name> [<deployment|...> <...> [...]]"\n')"
+USAGE="$(printf 'Usage:\n  INPUTS="<configmap|secret|image> <namespace> <name> [<configmap|...> <namespace> <...> [...]]"\n  TARGETS="<deployment|replicaset|statefulset> <namespace> <name> [<deployment|...> <...> [...]]"\n')"
 
 compute_hash(){
     sha256sum - | sed 's/\s.*//'
@@ -17,18 +17,27 @@ if [ $# = 0 ]; then
     exit 1
 fi
 INPUT_HASHES=
-while [ $# -ge 3 ]; do
+while [ $# -gt 1 ]; do
     TYPE="$1"
-    NS="$2"
-    NAME="$3"
-    shift 3
+    shift
 
     if [ "$TYPE" = "configmap" ] || [ "$TYPE" = "secret" ]; then
+        NS="$1"
+        NAME="$2"
+        shift 2
         OUTPUT="$(kubectl -n "$NS" get $TYPE "$NAME" -o json)"
         if [ $? != 0 ]; then
             exit 1
         fi
         INPUT_HASHES="$INPUT_HASHES $(printf '%s\n' "$OUTPUT" | jq -S -c .data | compute_hash)"
+    elif [ "$TYPE" = "image" ]; then
+        NAME="$1"
+        shift
+        OUTPUT="$(crane digest "$NAME")"
+        if [ $? != 0 ]; then
+            exit 1
+        fi
+        INPUT_HASHES="$INPUT_HASHES $OUTPUT"
     else
         printf 'Unsupported type %s\n' "'$TYPE'" >&2
         exit 1
