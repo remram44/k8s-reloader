@@ -1,6 +1,6 @@
 #!/bin/sh
 
-USAGE="$(printf 'Usage:\n  INPUTS="<configmap|secret|image> <namespace> <name> [<configmap|...> <namespace> <...> [...]]"\n  TARGETS="<deployment|replicaset|statefulset> <namespace> <name> [<deployment|...> <...> [...]]"\n')"
+USAGE="$(printf 'Usage:\n  INPUTS="<input> [<input>] [...]"\n    each <input> is either:\n      configmap <namespace> <name>\n      secret <namespace> <name>\n      image <repo>:<tag>\n  TARGETS="<target> [<target>] [...]"\n    each <target> is either:\n      deployment <namespace> <name>\n      replicaset <namespace> <name>\n      statefulset <namespace> <name>\n')"
 
 compute_hash(){
     sha256sum - | sed 's/\s.*//'
