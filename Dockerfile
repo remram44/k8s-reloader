@@ -1,4 +1,4 @@
-FROM docker.io/alpine/kubectl:1.35.4
+FROM docker.io/alpine/kubectl:1.36.4
 
 # Needs:
 #   kubectl
